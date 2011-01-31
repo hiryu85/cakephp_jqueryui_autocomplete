@@ -35,8 +35,8 @@ A easy way for use auto-complete on CakePHP
   You can found JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/
 
 ## AutoCompleteHelper configuration
-    JQuery-ui auto-complete behavior:
-    *Please, read about this configuration at jquery-ui homepage*
+JQuery-ui auto-complete behavior:
+*Please, read about this configuration at jquery-ui homepage*
     * integer delay [default=300]
     * boolean disabled [default=false]
     * mixed   source   [default="/auto_complete/RemoteSources/get" this is an magic url]    
