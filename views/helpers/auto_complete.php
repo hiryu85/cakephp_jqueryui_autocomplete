@@ -5,7 +5,7 @@
  * @author      Chialastri Mirko 
  * @version     0.1 
  * 
- * Source can ben:
+ * Source can be:
  *      1. an array (auto-complete with static choices):
  *         $this->AutoComplete->input('Model.field', null, array('source' => array('Foo', 'Bar') )) 
  *      2. a URL resource:
@@ -34,6 +34,15 @@ class AutoCompleteHelper extends AppHelper {
     );
     
     /**
+     * AutoCompleteHelper options 
+     * 
+     * @todo        Implement fields option 
+     */
+    var $autoCompleteHelperOptions = array(
+        'fields' => null,
+    );
+    
+    /**
      * Render a input element with auto-complete function 
      * 
      * Require Jquery and Jquery-ui.
@@ -46,7 +55,14 @@ class AutoCompleteHelper extends AppHelper {
      * @author  Chialastri Mirko
      * @version 0.1  
      **/
-    public function input($field='Lineup.name', $formHelperOptions=array(), $jQueryUiOptions=array()) {
+    public function input($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
+        preg_match('/(?P<model>[a-z0-9]+)\.(?P<field>[a-z0-9]+)/i', $field, $tmp);
+
+        if ($field == null || sizeof($tmp) < 2) {
+            trigger_error(__d('AutoCompleteHelper', 'Please give me a field in format: Model.field', true));
+            return;
+        }
+        
         // Override default jquery-ui-autocomplete options
         $jq_ui = array_merge($this->jQueryUiOptionsDefaults, $jQueryUiOptions);
         $jq_ui['source']  = $this->__buildSource($jq_ui['source'], $field);
@@ -96,7 +112,15 @@ class AutoCompleteHelper extends AppHelper {
  
  
     /**
+     * Return source type
      * 
+     * Source can be a:
+     *      - URL
+     *      - Array
+     *      - Javascript callback
+     * 
+     *  @param  mixed       jQueryUiAutoComplete source option
+     *  @return string 
      * 
      **/
     private function __getSourceType($value) {
