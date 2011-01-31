@@ -21,7 +21,8 @@ class RemoteSourcesController extends AppController {
         
     
         $conditions[] = "$model.$field LIKE '%{$term}%'";
-        $results = $this->{$model}->find('all', compact('conditions', 'fields'));
+        $group = array("$model.$field");
+        $results = $this->{$model}->find('all', compact('conditions', 'fields', 'group'));
         //debug($results);
         $results = Set::extract($results, "{n}.{$model}");
         $this->set(compact('results'));
