@@ -10,12 +10,6 @@ class RemoteSourcesController extends AppController {
         $field = $this->params['form']['field'];
         $term = $this->params['form']['term'];
         
-        /*
-         * $controller = $this->params['controller'];
-         * $model = Inflector::camelize(Inflector::singularize($this->params['controller']));
-         * $field = 'name';
-        */
-        
         if (!isset($this->{$model})) {
             // Module not loaded.. try to import and load model
             $this->{$model} = ClassRegistry::init($model);
