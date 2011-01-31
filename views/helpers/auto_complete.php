@@ -14,33 +14,51 @@
  *         $this->AutoComplete->input('Model.field', null, array('source' => 'myCallback()'))
  * 
  **/
+  
 class AutoCompleteHelper extends AppHelper {
+    var $version = '0.1-alpha';
+    
     var $helpers = array('Html', 'Form');
+    
+    /* Configurations */ 
     /* Jquery-ui-autocomplete acceptable variables */
     var $jQueryUiOptions = array(
-        'appendTo',
-        'disabled',
-        'delay',
-        'source',
-        'minLength',
-    );
-    /* Jquery-ui-autocomplete default values */
-    var $jQueryUiOptionsDefaults = array(
-        //'appendTo',
-        //'disabled',
+        // Options
+        'appendTo' => '$(document.body)',
+        'disabled' => false,
         'delay' => 300,
         'source' => 'auto_complete/RemoteSources/get',
         'minLength' => 4,
+        
+        // Events
+        'search' => "function() {}",
+        'focus' => "function() {}",
+        'select' => "function(event, iu) {}",
     );
     
     /**
      * AutoCompleteHelper options 
      * 
-     * @todo        Implement fields option 
+     * @todo        Implement it
      */
     var $autoCompleteHelperOptions = array(
+        /* Find options */
         'fields' => null,
     );
+    /* AutoComplete callbacks */
+    var $callbacks = array(
+        'success' => "response(data);",
+        'beforeSend' => "",
+        
+    );
+    
+    /**
+     * Load all plugin css and js
+     */
+    public function beforeRender() {
+         $this->Html->script('/auto_complete/js/jquery.json.min.js', false);
+         $this->Html->script('/auto_complete/js/auto-complete-helper.js', false);
+    }
     
     /**
      * Render a input element with auto-complete function 
@@ -56,18 +74,14 @@ class AutoCompleteHelper extends AppHelper {
      * @version 0.1  
      **/
     public function input($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
-        preg_match('/(?P<model>[a-z0-9]+)\.(?P<field>[a-z0-9]+)/i', $field, $tmp);
+        if (!$this->checkFieldFormat($field)) return;
 
-        if ($field == null || sizeof($tmp) < 2) {
-            trigger_error(__d('AutoCompleteHelper', 'Please give me a field in format: Model.field', true));
-            return;
-        }
-        
         // Override default jquery-ui-autocomplete options
-        $jq_ui = array_merge($this->jQueryUiOptionsDefaults, $jQueryUiOptions);
+        $jq_ui = array_merge($this->jQueryUiOptions, $jQueryUiOptions);
+        // Build source and update source index
         $jq_ui['source']  = $this->__buildSource($jq_ui['source'], $field);
-        // Convert option to JSON
-        $auto_complete_options = $this->_buildOptions($jq_ui, $this->jQueryUiOptions);
+        // Convert option to Javascript Object
+        $auto_complete_options = $this->_buildOptions($jq_ui, array_keys($this->jQueryUiOptions));
         
         $form_element = '#'.Inflector::camelize(str_replace('.', '_', $field));
         $input_source = $this->Form->input($field, $formHelperOptions);
@@ -76,6 +90,60 @@ class AutoCompleteHelper extends AppHelper {
         return $this->output("$input_source\n$ac");
     }
     
+    
+    /**
+     * Render a input element with auto-complete function 
+     * 
+     * Require Jquery and Jquery-ui.
+     * 
+     * @param   string      Model.field
+     * @param   array       FormHelper options
+     * @param   array       JQuery-ui AutoComplete options
+     * @return  none
+     *   
+     * @author  Chialastri Mirko
+     * @version 0.1  
+     **/
+    public function multiple($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
+        if (!$this->checkFieldFormat($field)) return;
+        // Override default jquery-ui-autocomplete options
+        $jq_ui = array_merge($this->jQueryUiOptions, $jQueryUiOptions);
+        
+        $jq_ui['search'] = "function() {var term = extractLast(this.value);if ( term.length < 2 ) return false;}";
+        $jq_ui['focus'] = "function() {return false;}";
+        $jq_ui['select'] = "function(event, ui) {
+                    var terms = split(this.value);
+                    // remove the current input
+                    terms.pop();
+                    // add the selected item
+                    terms.push( ui.item.value );
+                    // add placeholder to get the comma-and-space at the end
+                    terms.push( '' );
+                    this.value = terms.join( ', ' );
+                    return false;
+        }";
+        // Edit "term" in data, use only last term (after comma)
+        $this->callbacks['beforeSend'] = "var data = tokenize(settings.data, '&');data.term = extractLast(data.term); settings.data = Json2QueryString(data);"; 
+                    
+        // Build source and update source index
+        $jq_ui['source']  = $this->__buildSource($jq_ui['source'], $field);
+        // Convert option to Javascript Object
+        $auto_complete_options = $this->_buildOptions($jq_ui, array_keys($this->jQueryUiOptions));
+        
+        $form_element = '#'.Inflector::camelize(str_replace('.', '_', $field));
+        $input_source = $this->Form->input($field, $formHelperOptions);
+        
+        $ac = $this->Html->scriptBlock("$('$form_element').autocomplete($auto_complete_options).bind('keydown', function( event ) {
+                if ( event.keyCode === $.ui.keyCode.TAB &&
+                        $( this ).data( 'autocomplete' ).menu.active ) {
+                    event.preventDefault();
+                }
+            })", array('inline' => 'true'));
+        return $this->output("$input_source\n$ac");
+    }
+    
+    
+    /* Internal methods */
     
     /**
      * Returns a string of JavaScript with the given option data as a JavaScript options hash.
@@ -147,10 +215,11 @@ class AutoCompleteHelper extends AppHelper {
                     url: '$value',
                     type: 'POST',
                     dataType:'json',
-                    data:{model: '$model', field: '$field', term: request.term}, 
-                    success: function (data) {response(data);}
+                    data:{ model: '$model', field: '$field', term: request.term },
+                    beforeSend: function (jqXHR, settings) { {$this->callbacks['beforeSend']}  },
+                    success: function (data) { {$this->callbacks['success']} }
                     })
-                   } ";
+                   }";
             break;
             
             // Static choices
@@ -159,11 +228,40 @@ class AutoCompleteHelper extends AppHelper {
             break;
             
             // Is a javascript callback maybe
+            // #TODO: implement it 
             case 'CALLBACK':
                 return "function (request, response) { $value }";
             break;
 
         }
     }
+    
+    
+    public function checkFieldFormat($field) {
+        preg_match('/(?P<model>[a-z0-9]+)\.(?P<field>[a-z0-9]+)/i', $field, $tmp);
+
+        if ($field == null || sizeof($tmp) < 2) {
+            trigger_error(__d('AutoCompleteHelper', 'Please give me a field in format: Model.field', true));
+            return false;
+        } else return true;
+    }
+    
+    
+    /**
+     * Check if the option has default value or not.
+     * 
+     * @param       string      option name
+     * @param       string      option value 
+     * @return      boolean
+     * @version     0.1    
+     * 
+     */
+    private function __hasDefaultValue($option, $value) {
+        if (!array_key_exists($this->jQueryUiOptions)) 
+            trigger_error("$option should be a valid jquery-ui autocomplete options.");
+        
+        return strncasecmp($value, $this->jQueryUiOptions[$option]) === 0;
+    }
+    
     
 }
