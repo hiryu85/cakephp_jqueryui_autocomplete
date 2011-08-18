@@ -5,7 +5,8 @@ A easy way for use auto-complete on CakePHP
 ## Requirements
 
 * jQuery
-* jQuery-ui 
+* jQuery-ui
+* jquery.json.min.js (http://code.google.com/p/jquery-json/) 
 
 ## Installation
 * Go to your CakePHP app dir (app/)
@@ -14,6 +15,7 @@ A easy way for use auto-complete on CakePHP
      `git clone git@github.com:hiryu85/cakephp_jqueryui_autocomplete.git app/plugins/auto_complete`
   * _as submodule_  
     `git submodule add git@github.com:hiryu85/cakephp_jqueryui_autocomplete.git app/plugins/auto_complete`     
+* Add jQuery.Json.js to `auto_complete/webroot/js`
 *  Include AutoComplete helper into your controller 
    * `var $helpers = array('AutoComplete.AutoComplete')`  
    * `$this->helpers[] = 'AutoComplete.AutoComplete'` 
@@ -29,7 +31,7 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
  * ## input($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with auto-complete.*
   
-    <?= 
+    <?php echo 
             $this->Form->create('Event').
             $this->AutoComplete->input('Event.city', array('placeholder' => 'Rome'), array('delay' => 600)).
             $this->Form->input('Event.date').
@@ -40,7 +42,7 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
  * ## multiple($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with multiple auto-complete.*
   
-    <?= 
+    <?php echo
             $this->Form->create('Event').
             $this->AutoComplete->multiple('Event.city', array('placeholder' => 'Rome'), array('delay' => 600)).
             $this->Form->input('Event.date').
