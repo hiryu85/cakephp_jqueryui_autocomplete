@@ -18,7 +18,7 @@
 class AutoCompleteHelper extends AppHelper {
     var $version = '0.1-alpha';
     
-    var $helpers = array('Html', 'Form');
+    var $helpers = array('Html', 'Form', 'Js');
     
     /* Configurations */ 
     /* Jquery-ui-autocomplete acceptable variables */
@@ -86,7 +86,8 @@ class AutoCompleteHelper extends AppHelper {
         $form_element = '#'.Inflector::camelize(str_replace('.', '_', $field));
         $input_source = $this->Form->input($field, $formHelperOptions);
         
-        $ac = $this->Html->scriptBlock("$('$form_element').autocomplete($auto_complete_options);", array('inline' => 'true'));
+        $__autoCompleteSource = "$('{$form_element}').autocomplete($auto_complete_options);";
+        $ac = $this->Js->buffer($__autoCompleteSource);
         return $this->output("$input_source\n$ac");
     }
     
