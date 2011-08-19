@@ -16,10 +16,11 @@ A easy way for use auto-complete on CakePHP
   * _as submodule_  
     `git submodule add git@github.com:hiryu85/cakephp_jqueryui_autocomplete.git app/plugins/auto_complete`     
 * Add jQuery.Json.js to `auto_complete/webroot/js`
-*  Include AutoComplete helper into your controller 
-   * `var $helpers = array('AutoComplete.AutoComplete')`  
-   * `$this->helpers[] = 'AutoComplete.AutoComplete'` 
+*  Include AutoComplete helper into your controller with:
+   * Append this helper into your controller (all actions can use it): `var $helpers = array('AutoComplete.AutoComplete')`  
+   * Append this helper into your action:    (only current action load it): `$this->helpers[] = 'AutoComplete.AutoComplete'` 
 *  Use it with $this->AutoComplete('Model.field') into your view's (*Model.field sintax is required*)
+*  Add into your views/layouts/default.ctp `$this->Js->writeBuffer(array('onDomReady' => true))` 
 *  All done :)
 
 
@@ -30,24 +31,29 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
 
  * ## input($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with auto-complete.*
-  
-    <?php echo 
-            $this->Form->create('Event').
-            $this->AutoComplete->input('Event.city', array('placeholder' => 'Rome'), array('delay' => 600)).
-            $this->Form->input('Event.date').
-            $this->Form->end(__('Search event'))    
-    ?>
+    `<?php echo 
+       $this->Form->create('Event').
+       $this->AutoComplete->input(
+           'Event.city', 
+            array(
+              'placeholder' => 'Rome'
+            ),
+          array('delay' => 600)
+       ).
+       $this->Form->input('Event.date').
+       $this->Form->end(__('Search event'))    
+    ?>`
  
 
  * ## multiple($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with multiple auto-complete.*
-  
-    <?php echo
-            $this->Form->create('Event').
-            $this->AutoComplete->multiple('Event.city', array('placeholder' => 'Rome'), array('delay' => 600)).
-            $this->Form->input('Event.date').
-            $this->Form->end(__('Search event'))    
-    ?>
+     
+     `<?php echo
+          $this->Form->create('Event').
+          $this->AutoComplete->multiple('Event.city', array('placeholder' => 'Rome'), array('delay' => 600)).
+          $this->Form->input('Event.date').
+          $this->Form->end(__('Search event'))    
+     ?>`
 
 
 # Configuration 
@@ -58,6 +64,7 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
  * boolean $disabled ` default=false` 
  * mixed   $source   `default="/auto_complete/RemoteSources/get"`  this is an magic url   
  * integer $minLength  ` default=4` 
+ 
 #### Events
 * search()
 * focus()
