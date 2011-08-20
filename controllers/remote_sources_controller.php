@@ -4,6 +4,7 @@ class RemoteSourcesController extends AppController {
     
     function get() {
         $this->layout = 'ajax';
+        $this->autoRender = false;
         
         if (empty($this->params['form'])) return;
         $model = $this->params['form']['model'];
@@ -24,8 +25,7 @@ class RemoteSourcesController extends AppController {
         $group = array("$model.$field");
         $results = $this->{$model}->find('all', compact('conditions', 'fields', 'group'));
         //debug($results);
-        $results = Set::extract($results, "{n}.{$model}");
-        $this->set(compact('results'));
+        echo json_encode(Set::extract((array) $results,"{n}.{$model}"));
     }
     
 }
