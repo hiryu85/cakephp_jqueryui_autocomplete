@@ -2,7 +2,7 @@
 /**
  * Jquery-ui Autocomplete helpers
  * 
- * @author      Chialastri Mirko 
+ * @author      Mirko Chialastri 
  * @version     0.1 
  * 
  * Source can be:
@@ -16,7 +16,7 @@
  **/
   
 class AutoCompleteHelper extends AppHelper {
-    var $version = '0.1-alpha';
+    var $version = '1.0';
     
     var $helpers = array('Html', 'Form', 'Js');
     
