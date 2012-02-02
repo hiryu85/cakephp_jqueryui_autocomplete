@@ -14,7 +14,6 @@ A easy way for use auto-complete on CakePHP
      `git clone git@github.com:hiryu85/cakephp_jqueryui_autocomplete.git app/plugins/auto_complete`
   * _as submodule_  
     `git submodule add git@github.com:hiryu85/cakephp_jqueryui_autocomplete.git app/plugins/auto_complete`     
-* Add jQuery.Json.js to `auto_complete/webroot/js`
 *  Include AutoComplete helper into your controller with:
    * Append this helper into your controller (all actions can use it): `var $helpers = array('AutoComplete.AutoComplete')`  
    * Append this helper into your action:    (only current action load it): `$this->helpers[] = 'AutoComplete.AutoComplete'` 
@@ -28,7 +27,7 @@ A easy way for use auto-complete on CakePHP
 and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
 
 
- * ## input($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions)
+ * ## input($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions, $AutoCompleteHelperSettings)
   *Render an input element with auto-complete.*
     `<?php echo 
        $this->Form->create('Event').
@@ -44,7 +43,7 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
     ?>`
  
 
- * ## multiple($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions)
+ * ## multiple($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions, $AutoCompleteHelperSettings)
   *Render an input element with multiple auto-complete.*
      
      `<?php echo
@@ -63,7 +62,15 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
  * boolean $disabled ` default=false` 
  * mixed   $source   `default="/auto_complete/RemoteSources/get"`  this is an magic url   
  * integer $minLength  ` default=4` 
- 
+
+
+#### Security
+Everytimes your view run helper's input() or multiple() make a session for prevent hacking (with curl etc.).
+So, anyone can get User.password with RemoteSources controller if you don't want.
+
+If you use argument $AutoCompleteHelperSettings (of input and multiple methods) you can set a whitelist for
+append another fields to json result.
+
 #### Events
 * search()
 * focus()
@@ -83,7 +90,11 @@ You can give to AutoComplete helper method a custom options (and events callback
 
               /* And now, override Events callback */
              'select' => "function() { somethingElse();  }",
-           ) 
+           )
+           /* AutoCompleteHelper settings */
+           array(
+                'fields' => 'cap,state,uuid'    // Append some extra fields to json result
+           )
      )` 
 
 
