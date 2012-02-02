@@ -17,7 +17,7 @@
   
 class AutoCompleteHelper extends AppHelper {
     var $version = '1.0';
-    var $helpers = array('Html', 'Session', 'Form', 'Js');
+    var $helpers = array('Html', 'Form', 'Js');
     
     /* Configurations */ 
     /* Jquery-ui-autocomplete acceptable variables */
@@ -62,13 +62,16 @@ class AutoCompleteHelper extends AppHelper {
     * 
     * @param    array   TinySongHelper options
     */
-    function __construct($options=array()) {
+    function __construct($options = array()) {
         parent::__construct($options);
 
         if (!class_exists('CakeSession')) {
             App::import('Core','Session');
         }
-        $this->session = new CakeSession(); 
+        debug(session_id());
+        $this->session = new CakeSession(null, true);
+        $this->session->security = 'hight';
+        // debug( $this->session->id('AAAAAAAAAAAAAAAAAAA') );
         $this->session->start();
 
         if (is_null($this->jQueryUiOptions['source'])) $this->jQueryUiOptions['source'] = Router::url('/auto_complete/RemoteSources/get', true);
@@ -128,7 +131,7 @@ class AutoCompleteHelper extends AppHelper {
      * @author  Chialastri Mirko
      * @version 0.1  
      **/
-    public function multiple($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
+    public function multiple($field = null, $formHelperOptions = array(), $jQueryUiOptions = array(), $HelperOptions = array()) {
         if (!$this->checkFieldFormat($field)) return;
         
         $this->__createWhiteList($field, @$HelperOptions['fields']);
@@ -308,11 +311,14 @@ class AutoCompleteHelper extends AppHelper {
     *   @return void
     */ 
     private function __createWhiteList($field, $allowedFields) {
-        if (is_array($allowedFields) && isset($HelperOptions['fields'])) {
-            $this->__appendRuleToSession("{$field}", $HelperOptions['fields']);
-        }
+        $this->__appendRuleToSession("{$field}", $allowedFields);
+        
     }
-    
+
+    function __hash($page) {
+        return base64_encode($page);
+    }
+        
    /**
     *   Create new Session index only for AutoCompleteHelper
     * 
@@ -321,9 +327,9 @@ class AutoCompleteHelper extends AppHelper {
     *   @return bool
     */ 
     private function __appendRuleToSession($key, $value) {
-        $tmp = Inflector::camelize( str_replace('.', '_', $key) );
-        $this->session->watch($tmp);
-        $this->session->write($tmp, $value);
+        $field = Inflector::camelize( str_replace('.', '_', $key) );
+        $page = $this->__hash( Router::url('') );
+        $this->session->write("AutoComplete.{$page}.{$field}", $value);
     }
     
     

@@ -24,12 +24,22 @@ class RemoteSourcesController extends AppController {
         // Append fields to json result (require $session)
         if (!is_null($session)) {
             $this->Session->id($session);
-            $sessionKey = Inflector::camelize($this->params['form']['model'].'_'.$this->params['form']['field']);
-            if($this->Session->check($sessionKey)) {
-                $whitelistedFields = explode(',', $this->Session->read($sessionKey));
-                $fields = array_merge($fields, $whitelistedFields);
-            }
+            list($url, $vars) = explode('?', preg_replace('/(\/.+:.+)/i', '', Router::url( $this->referer('/') ) ));
+            $configNode = base64_encode( $url );
+            
+            if (!$this->Session->check("AutoComplete.{$configNode}")) {
+                $this->redirect('/', 400, true);            
+            } else {
+                $fieldConfig = Inflector::camelize($this->params['form']['model'].'_'.$this->params['form']['field']);
+                $configPath = "AutoComplete.{$configNode}.{$fieldConfig}";
+                if($this->Session->check($configPath)) {
+                    $whitelistedFields = explode(',', $this->Session->read($configPath));
+                    $fields = array_merge($fields, $whitelistedFields);
+                }                
+            }            
+
         }
+        
         $conditions[] = "$model.$field LIKE '%{$term}%'";
         $group = array("$model.$field");
         $results = $this->{$model}->find('all', compact('conditions', 'fields', 'group'));
