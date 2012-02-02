@@ -29,7 +29,7 @@ A easy way for use auto-complete on CakePHP
 and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
 
 
- * ## input($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
+ * ## input($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with auto-complete.*
     `<?php echo 
        $this->Form->create('Event').
@@ -45,7 +45,7 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
     ?>`
  
 
- * ## multiple($modelNameAndField, $HtmlHelperOptions, $JQueryUiAutoCompleteOptions)
+ * ## multiple($modelNameAndField, $FormHelperOptions, $JQueryUiAutoCompleteOptions)
   *Render an input element with multiple auto-complete.*
      
      `<?php echo
