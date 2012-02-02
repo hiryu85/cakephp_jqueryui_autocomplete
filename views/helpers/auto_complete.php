@@ -62,12 +62,13 @@ class AutoCompleteHelper extends AppHelper {
     function __construct($options=array()) {
         parent::__construct($options);
 
-        App::import('Core','Session'); 
+        if (!class_exists('CakeSession')) {
+            App::import('Core','Session');
+        }
         $this->session = new CakeSession(); 
         $this->session->start();
-        debug($this->session->id());
+
         if (is_null($this->jQueryUiOptions['source'])) $this->jQueryUiOptions['source'] = Router::url('/auto_complete/RemoteSources/get', true);
-        // $this->Security = App::import('Component', 'Security');
     }
     
     /**
