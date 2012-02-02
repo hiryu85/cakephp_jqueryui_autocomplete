@@ -1,8 +1,9 @@
 <?php
 class RemoteSourcesController extends AppController {
     var $name = 'RemoteSources';
-    
-    function get() {
+    var $components = array('Session');
+      
+    public function get($session = null) {
         $this->layout = 'ajax';
         $this->autoRender = false;
         
@@ -19,12 +20,19 @@ class RemoteSourcesController extends AppController {
         $fields[] = "$model.$field AS label";
         $fields[] = "$model.$field AS value";
         $fields[] = "{$this->{$model}->primaryKey} AS id";
-        
-    
+
+        // Append fields to json result (require $session)
+        if (!is_null($session)) {
+            $this->Session->id($session);
+            $sessionKey = Inflector::camelize($this->params['form']['model'].'_'.$this->params['form']['field']);
+            if($this->Session->check($sessionKey)) {
+                $whitelistedFields = explode(',', $this->Session->read($sessionKey));
+                $fields = array_merge($fields, $whitelistedFields);
+            }
+        }
         $conditions[] = "$model.$field LIKE '%{$term}%'";
         $group = array("$model.$field");
         $results = $this->{$model}->find('all', compact('conditions', 'fields', 'group'));
-        //debug($results);
         echo json_encode(Set::extract((array) $results,"{n}.{$model}"));
     }
     

@@ -17,8 +17,7 @@
   
 class AutoCompleteHelper extends AppHelper {
     var $version = '1.0';
-    
-    var $helpers = array('Html', 'Form', 'Js');
+    var $helpers = array('Html', 'Session', 'Form', 'Js');
     
     /* Configurations */ 
     /* Jquery-ui-autocomplete acceptable variables */
@@ -27,7 +26,7 @@ class AutoCompleteHelper extends AppHelper {
         'appendTo' => '$(document.body)',
         'disabled' => false,
         'delay' => 300,
-        'source' => 'auto_complete/RemoteSources/get',
+        'source' => null,
         'minLength' => 4,
         
         // Events
@@ -51,6 +50,25 @@ class AutoCompleteHelper extends AppHelper {
         'beforeSend' => "",
         
     );
+
+
+    var $session = null;
+    
+   /**
+    * Helper constructor
+    * 
+    * @param    array   TinySongHelper options
+    */
+    function __construct($options=array()) {
+        parent::__construct($options);
+
+        App::import('Core','Session'); 
+        $this->session = new CakeSession(); 
+        $this->session->start();
+        debug($this->session->id());
+        if (is_null($this->jQueryUiOptions['source'])) $this->jQueryUiOptions['source'] = Router::url('/auto_complete/RemoteSources/get', true);
+        // $this->Security = App::import('Component', 'Security');
+    }
     
     /**
      * Load all plugin css and js
@@ -68,18 +86,19 @@ class AutoCompleteHelper extends AppHelper {
      * @param   string      Model.field
      * @param   array       FormHelper options
      * @param   array       JQuery-ui AutoComplete options
-     * @return  none
+     * @return  void
      *   
      * @author  Chialastri Mirko
      * @version 0.1  
      **/
-    public function input($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
+    public function input($field = null, $formHelperOptions = array(), $jQueryUiOptions = array(), $HelperOptions = array() ) {
         if (!$this->checkFieldFormat($field)) return;
+        $this->__createWhiteList($field, @$HelperOptions['fields']);
 
         // Override default jquery-ui-autocomplete options
         $jq_ui = array_merge($this->jQueryUiOptions, $jQueryUiOptions);
         // Build source and update source index
-        $jq_ui['source']  = $this->__buildSource($jq_ui['source'], $field);
+        $jq_ui['source']  = $this->__buildSource($jq_ui['source'].'/'.$this->session->id(), $field);
         // Convert option to Javascript Object
         $auto_complete_options = $this->_buildOptions($jq_ui, array_keys($this->jQueryUiOptions));
         
@@ -87,7 +106,7 @@ class AutoCompleteHelper extends AppHelper {
         $input_source = $this->Form->input($field, $formHelperOptions);
         
         $__autoCompleteSource = "$('{$form_element}').autocomplete($auto_complete_options);";
-        $ac = $this->Js->buffer($__autoCompleteSource);
+        $ac = $this->Js->buffer($__autoCompleteSource);            
         return $this->output("$input_source\n$ac");
     }
     
@@ -107,6 +126,8 @@ class AutoCompleteHelper extends AppHelper {
      **/
     public function multiple($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
         if (!$this->checkFieldFormat($field)) return;
+        $this->__createWhiteList($field, @$HelperOptions['fields']);
+        
         // Override default jquery-ui-autocomplete options
         $jq_ui = array_merge($this->jQueryUiOptions, $jQueryUiOptions);
         
@@ -204,12 +225,14 @@ class AutoCompleteHelper extends AppHelper {
      * the value of the index source of helper options.
      * 
      * @param       mixed       Value of $jQueryUiOptionsDefaults
-     * @param       array       Allowed options 
+     * @param       array       Allowed options
+     * @todo        Test callback mode please
+     * @return      string
      **/
     private function __buildSource($value, $field) {
         switch($this->__getSourceType($value)) {
             // Is a URL
-            case'URL':
+            case'URL':                
                 list($model, $field) = explode('.', $field);
                 return "function (request, response) {
                     $.ajax({
@@ -229,7 +252,6 @@ class AutoCompleteHelper extends AppHelper {
             break;
             
             // Is a javascript callback maybe
-            // #TODO: implement it 
             case 'CALLBACK':
                 return "function (request, response) { $value }";
             break;
@@ -237,7 +259,13 @@ class AutoCompleteHelper extends AppHelper {
         }
     }
     
-    
+   /**
+    *   Check if $field match format ModelName.ModelField
+    * 
+    *   @param      string  $field  Field
+    *   @return     bool
+    *   @access     private
+    */ 
     public function checkFieldFormat($field) {
         preg_match('/(?P<model>[a-z0-9]+)\.(?P<field>[a-z0-9]+)/i', $field, $tmp);
 
@@ -246,14 +274,15 @@ class AutoCompleteHelper extends AppHelper {
             return false;
         } else return true;
     }
-    
-    
+        
     /**
      * Check if the option has default value or not.
      * 
-     * @param       string      option name
-     * @param       string      option value 
-     * @return      boolean
+     *  @param      string      option name
+     *  @param      string      option value 
+     *  @return     boolean
+     *  @access     private
+     * 
      * @version     0.1    
      * 
      */
@@ -262,6 +291,33 @@ class AutoCompleteHelper extends AppHelper {
             trigger_error("$option should be a valid jquery-ui autocomplete options.");
         
         return strncasecmp($value, $this->jQueryUiOptions[$option]) === 0;
+    }
+
+
+   /**
+    *   Use auto-complete helper in "whitelist" mode (add $allowFields on json)
+    * 
+    *   @param  string  $field          Model and field name (in Model.field format)
+    *   @param  array   $allowedFields  Fields name to append to json result (only fields name).
+    *   @return void
+    */ 
+    private function __createWhiteList($field, $allowedFields) {
+        if (is_array($allowedFields) && isset($HelperOptions['fields'])) {
+            $this->__appendRuleToSession("{$field}", $HelperOptions['fields']);
+        }
+    }
+    
+   /**
+    *   Create new Session index only for AutoCompleteHelper
+    * 
+    *   @param  string  $key    Session key
+    *   @param  string  $value  Session value
+    *   @return bool
+    */ 
+    private function __appendRuleToSession($key, $value) {
+        $tmp = Inflector::camelize( str_replace('.', '_', $key) );
+        $this->session->watch($tmp);
+        $this->session->write($tmp, $value);
     }
     
     
