@@ -6,7 +6,6 @@ A easy way for use auto-complete on CakePHP
 
 * jQuery
 * jQuery-ui
-* jquery.json.min.js (http://code.google.com/p/jquery-json/) 
 
 ## Installation
 * Go to your CakePHP app dir (app/)
