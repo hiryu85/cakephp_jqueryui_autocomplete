@@ -53,6 +53,9 @@ class AutoCompleteHelper extends AppHelper {
 
 
     var $session = null;
+    var $runtime = array(
+        'use_multiple' => false
+    );
     
    /**
     * Helper constructor
@@ -70,13 +73,13 @@ class AutoCompleteHelper extends AppHelper {
 
         if (is_null($this->jQueryUiOptions['source'])) $this->jQueryUiOptions['source'] = Router::url('/auto_complete/RemoteSources/get', true);
     }
-    
-    /**
-     * Load all plugin css and js
-     */
+
+
     public function beforeRender() {
-         $this->Html->script('/auto_complete/js/jquery.json.min.js', false);
-         $this->Html->script('/auto_complete/js/auto-complete-helper.js', false);
+        // Loading plugins assets         
+         if ($this->runtime['use_multiple']) {
+             $this->Html->script('/auto_complete/js/auto-complete-helper.js', false);
+         }
     }
     
     /**
@@ -127,7 +130,9 @@ class AutoCompleteHelper extends AppHelper {
      **/
     public function multiple($field = null, $formHelperOptions=array(), $jQueryUiOptions=array()) {
         if (!$this->checkFieldFormat($field)) return;
+        
         $this->__createWhiteList($field, @$HelperOptions['fields']);
+        $this->runtime['use_multiple'] = true;
         
         // Override default jquery-ui-autocomplete options
         $jq_ui = array_merge($this->jQueryUiOptions, $jQueryUiOptions);
