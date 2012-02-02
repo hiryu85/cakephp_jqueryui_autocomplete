@@ -53,6 +53,12 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
           $this->Form->end(__('Search event'))    
      ?>`
 
+## About security
+Every time this helper call input() or multiple() methods, it make a session for with field name for prevent hacking (with curl etc.).
+So, anyone can't get any private field of your model (with RemoteSources Controller) if the helper not allow autocomplete for this field.
+
+If you use argument $AutoCompleteHelperSettings (of input and multiple methods) you can set a whitelist for
+append another fields to json result.
 
 # Configuration 
 ## AutoCompleteHelper options
@@ -62,14 +68,6 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
  * boolean $disabled ` default=false` 
  * mixed   $source   `default="/auto_complete/RemoteSources/get"`  this is an magic url   
  * integer $minLength  ` default=4` 
-
-
-#### Security
-Everytimes your view run helper's input() or multiple() make a session for prevent hacking (with curl etc.).
-So, anyone can get User.password with RemoteSources controller if you don't want.
-
-If you use argument $AutoCompleteHelperSettings (of input and multiple methods) you can set a whitelist for
-append another fields to json result.
 
 #### Events
 * search()
