@@ -21,6 +21,16 @@ A easy way for use auto-complete on CakePHP
 *  Add into your views/layouts/default.ctp `$this->Js->writeBuffer(array('onDomReady' => true))` 
 *  All done :)
 
+## About security
+This helper allows you to set the data source from where do auto from three different types: RemoteSource (default, and magic), a url to your action, a static source (an array).
+If you are using RemoteSource, *and if you use the version v1 of this plugin* can be unsafe (please update), because there is no special protection to limit the fields on which to make the autocomplete.
+*This does not happen in version 2.*
+
+Every time this helper call input() or multiple() methods, it make a session for with field name for prevent hacking (with curl etc.).
+So, anyone can't get any private field of your model (with RemoteSources Controller) if the helper not allow autocomplete for this field.
+
+If you use argument $AutoCompleteHelperSettings (of input and multiple methods) you can set a whitelist for
+append another fields to json result.
 
 ## AutoComplete methods:
 *You can found FormHelperOptions at http://api.cakephp.org/class/form-helper
@@ -53,12 +63,6 @@ and JQueryUiAutoCompleteOptions at http://jqueryui.com/demos/autocomplete/*
           $this->Form->end(__('Search event'))    
      ?>`
 
-## About security
-Every time this helper call input() or multiple() methods, it make a session for with field name for prevent hacking (with curl etc.).
-So, anyone can't get any private field of your model (with RemoteSources Controller) if the helper not allow autocomplete for this field.
-
-If you use argument $AutoCompleteHelperSettings (of input and multiple methods) you can set a whitelist for
-append another fields to json result.
 
 # Configuration 
 ## AutoCompleteHelper options
