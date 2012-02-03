@@ -24,7 +24,8 @@ class RemoteSourcesController extends AppController {
         // Append fields to json result (require $session)
         if (!is_null($session)) {
             $this->Session->id($session);
-            list($url, $vars) = explode('?', preg_replace('/(\/.+:.+)/i', '', Router::url( $this->referer('/') ) ));
+            $tmp = explode('?', preg_replace('/(\/.+:.+)/i', '', Router::url( $this->referer('/') ) ));
+            $url = $tmp[0];
             $configNode = base64_encode( $url );
             
             if (!$this->Session->check("AutoComplete.{$configNode}")) {
